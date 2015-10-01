@@ -67,8 +67,8 @@ title('LOG2 nominal values of flows and valve opening')
 legend('z_c','q_c','q_p','q_{bpp}','p_p','p_c')
 
 figure(2); clf(2);
-plot(LOG2.t, abs(LOG2.p_c-LOG2.p_p) ./ max(abs(LOG2.p_c-LOG2.p_p))); hold on;
-plot(LOG2.t,nomQ_c);
+%plot(LOG2.t, abs(LOG2.p_c-LOG2.p_p) ./ max(abs(LOG2.p_c-LOG2.p_p))); hold on;
+plot(LOG2.t,LOG2.q_c);
 grid on;
 
 %% Steady state analysis LOG3
@@ -140,3 +140,35 @@ C_a1 = sum(C_a1)/length(C_a1)
 C_a2 = sum(C_a2)/length(C_a2)
 
 C_a = (C_a1 + C_a2) / 2
+
+%% Friction coefficient estimation
+
+q_set = zeros(400,200); % wont need more than one q pr every second point
+avg_q_set = zeros(1,length(LOG2.t/2));
+m = 1;
+n = 1;
+set_ongoing = false;
+
+for i = 11:(length(LOG2.t)-10);
+    
+    if(( abs(LOG2.q_c(i-10)-LOG2.q_c(i)) < 10 ) ...
+            && ( abs(LOG2.q_c(i+10)-LOG2.q_c(i)) < 10 ) )
+        q_set(n,m) = LOG2.q_c(i);
+        n = n + 1;
+        set_ongoing = true;
+    else
+        if set_ongoing
+            m = m+1;
+            n = 1;
+            set_ongoing = false;
+        end
+        
+    end
+end
+
+
+
+    
+    
+    
+

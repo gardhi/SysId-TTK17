@@ -66,8 +66,10 @@ plot(LOG2.t,nomP_c);
 title('LOG2 nominal values of flows and valve opening')
 legend('z_c','q_c','q_p','q_{bpp}','p_p','p_c')
 
-figure(2); cld(2
-
+figure(2); clf(2);
+%plot(LOG2.t, abs(LOG2.p_c-LOG2.p_p) ./ max(abs(LOG2.p_c-LOG2.p_p))); hold on;
+plot(LOG2.t,LOG2.q_c);
+grid on;
 
 %% Steady state analysis LOG3
 
@@ -76,6 +78,7 @@ nomQ_c = LOG3.q_c(1:5000) ./ max(LOG3.q_bpp(1:5000));
 nomQ_bpp = LOG3.q_bpp(1:5000) ./ max(LOG3.q_bpp(1:5000));
 nomQ_p = LOG3.q_p(1:5000) / max(LOG3.q_p(1:5000));
 nomP_p = LOG3.p_p(1:5000) / max(LOG3.p_p(1:5000));
+nomP_c = LOG3.p_c(1:5000) ./ max(LOG3.p_c(1:5000));
 
 figure(1); clf(1)
 plot(LOG3.t(1:5000),nomZ_c(1:5000)); hold on;
@@ -83,8 +86,9 @@ plot(LOG3.t(1:5000),nomQ_c(1:5000));
 plot(LOG3.t(1:5000),nomQ_p(1:5000));
 plot(LOG3.t(1:5000),nomQ_bpp(1:5000));
 plot(LOG3.t(1:5000),nomP_p(1:5000));
+plot(LOG3.t(1:5000),nomP_c(1:5000));
 title('LOG3 nominal values of flows and valve opening')
-legend('z_c','q_c','q_p','q_{bpp}','p_p')
+legend('z_c','q_c','q_p','q_{bpp}','p_p','p_c')
 
 
 %% chekcing z and u correlation
@@ -129,10 +133,31 @@ avg_q_c_int1 = sum(LOG1.q_c(ss_interval_1)) / length(LOG1.q_c(ss_interval_1));
 avg_q_c_int2 = sum(LOG1.q_c(ss_interval_2)) / length(LOG1.q_c(ss_interval_2));
 
 
-C_a1 = (1/avg_q_c_int1)*(unNaNed_p_c1_int1 - unNaNed_p_dh1_int1) + rho_a*g*h;
-C_a2 = (1/avg_q_c_int2)*(unNaNed_p_c1_int2 - unNaNed_p_dh1_int2) + rho_a*g*h;
+C_a1 = (1/avg_q_c_int1)*(unNaNed_p_c1_int1 - unNaNed_p_dh1_int1 + rho_a*g*h);
+C_a2 = (1/avg_q_c_int2)*(unNaNed_p_c1_int2 - unNaNed_p_dh1_int2 + rho_a*g*h);
 
 C_a1 = sum(C_a1)/length(C_a1)
 C_a2 = sum(C_a2)/length(C_a2)
 
 C_a = (C_a1 + C_a2) / 2
+
+%% Friction coefficient estimation
+
+q_set = zeros(length(LOG3.t/2),length(LOG3.t/2)); % wont need more than one q pr every second point
+m = 1;
+n = 1;
+set_ongoing = false;
+
+for i = 10:(length(LOG3.t)-10);
+    
+    if(abs(LOG3.q_c(i-10)-LOG3.q_c(i)) < 6 && abs(LOG3.q_c(i+10)-LOG3.q_c(i))
+        q_set(n,m) = LOG3.q_c(i);
+        n = n + 1;
+    else
+        if
+            
+        end
+    
+    
+    
+
