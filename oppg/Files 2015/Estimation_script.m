@@ -226,4 +226,4 @@ Q_c = fft(LOG3.q_c, N);
 %plot(LOG3.t, LOG3.q_bpp - LOG3.q_c)
 
 
-
+%CHANGE FROM MASTER
