@@ -1,0 +1,6 @@
+
+# Gitignore, removes certain files from synchronization
+
+
+# Autosave files
+*.asv
