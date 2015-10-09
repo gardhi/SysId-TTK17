@@ -4,7 +4,7 @@ h = 1730; %m; h = h_d = h_a
 M = 10e9; %kg/m^4
 g = 9.8;
 
-%% finding f_a and rho_a
+%% finding rho_a
 
 unNaNed_p_dh3 = LOG3.p_dh(~isnan(LOG3.p_dh));
 unNaNed_p_c3 = LOG3.p_c(~isnan(LOG3.p_dh));
@@ -25,7 +25,7 @@ rho_a = (1/g*h)*avg_p_hdiff;
 
 %% Steady state analysis LOG1
 
-nomZ_c = LOG1.z_c ./ max(LOG1.z_c);
+nomZ_c = LOG1.z_c ./ max(abs(LOG1.z_c));
 nomQ_c = LOG1.q_c ./ max(LOG1.q_c);
 nomQ_p = LOG1.q_p ./ max(LOG1.q_p);
 nomP_p = LOG1.p_p ./ max(LOG1.p_p);
@@ -111,7 +111,7 @@ plot(LOG3.t, LOG3.u_c)
 
 % conclusion LOG3 z_c =~ u_c
 
-%% Steady states in LOG1 :: q_p = q_c = q
+%% Attempt at finding C_a, D_d and rho_d :: q_p = q_c = q
 
 ss_interval_1 = 760:930;
 ss_interval_2 = 1350:1500;
@@ -141,9 +141,12 @@ C_a2 = sum(C_a2)/length(C_a2)
 
 C_a = (C_a1 + C_a2) / 2
 
-%% Friction coefficient estimation
+%% Steady state curve fitting
+% For finding C_a, D_d and rho_d
 
 q_set = zeros(400,200); % wont need more than one q pr every second point
+p_c_set = zeros(400,200);
+p_p_set = zeros(400,200);
 avg_q_set = zeros(1,length(LOG2.t/2));
 m = 1;
 n = 1;
@@ -151,9 +154,11 @@ set_ongoing = false;
 
 for i = 11:(length(LOG2.t)-10);
     
-    if(( abs(LOG2.q_c(i-10)-LOG2.q_c(i)) < 10 ) ...
-            && ( abs(LOG2.q_c(i+10)-LOG2.q_c(i)) < 10 ) )
-        q_set(n,m) = LOG2.q_c(i);
+    if(( abs(LOG2.q_c(i-7)-LOG2.q_c(i)) < 10 ) ...         % checking k1 samples to the left
+            && ( abs(LOG2.q_c(i+7)-LOG2.q_c(i)) < 10 ) )   % checking k2 samples to the right
+        q_set(n,m) = LOG2.q_c(i);                          % if not too different assume steady state
+        p_c_set(n,m) = LOG2.p_c(i);
+        p_p_set(n,m) = LOG2.p_p(i);
         n = n + 1;
         set_ongoing = true;
     else
@@ -166,9 +171,59 @@ for i = 11:(length(LOG2.t)-10);
     end
 end
 
+measurments_for_use = [];
+k = 1;
+for i = 1: length(q_set(1,:))
+    temp = length(find(q_set(:,i)));
+    if temp > 5;
+        measurments_for_use(k) = i;
+        k = k+1;
+    end
+end
+
+avg_q_measurments = zeros(1,length(measurments_for_use));
+avg_p_c_measurments = zeros(1,length(measurments_for_use));
+avg_p_p_measurments = zeros(1,length(measurments_for_use));
+
+for i = 1:length(measurments_for_use)
+    this_q_set = q_set(find(q_set(:,measurments_for_use(i))), measurments_for_use(i));
+    avg_q_measurments(i) = sum(this_q_set)/length(this_q_set);
+    this_p_c_set = p_c_set(find(p_c_set(:,measurments_for_use(i))), measurments_for_use(i));
+    avg_p_c_measurments(i) = sum(this_p_c_set)/length(this_p_c_set);
+    this_p_p_set = p_p_set(find(p_p_set(:,measurments_for_use(i))), measurments_for_use(i));
+    avg_p_p_measurments(i) = sum(this_p_p_set)/length(this_p_p_set);
+end   
+
+figure(11); clf(11);
+plot(avg_q_measurments ,  - (rho_a*g*h) - avg_p_c_measurments + avg_p_p_measurments)
+hold on;
+poly = polyfit(avg_q_measurments , - (rho_a*g*h) - avg_p_c_measurments + avg_p_p_measurments,2);
+plot(avg_q_measurments, poly(1)*avg_q_measurments.^2 + poly(2)*avg_q_measurments + poly(3), 'o')
+hold off;
+
+rho_d = poly(3)/(g*h)
+C_a_fit = poly(2)
+D_d_fit = poly(1)
+
+%% Phi_c(u) and theta_c as a part of q_c(p_c,u_c) and g_c(u)
+% making p_c our y, and u_c our u.....
+
+% dp_c/dt euler
+for i = 1:(length(LOG1.p_c)-1)
+    p_c_dot = (LOG2.p_c(i+1)-LOG3.p_c) ./ (LOG3.t(i+1) -LOG3.t(i));
+end
+Va_over_Beta_a = (LOG3.q_bpp - LOG3.q_c)./p_c_dot;
 
 
-    
-    
-    
+%filtering
+N = 500;
+F = 1:N;
+Q_bpp = fft(LOG3.q_bpp, N);
+Q_c = fft(LOG3.q_c, N);
+
+%plot(LOG3.t, Va_over_Beta_a)
+%plot(LOG3.t, p_c_dot);
+%plot(LOG3.t, LOG3.q_bpp - LOG3.q_c)
+
+
 
