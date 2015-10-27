@@ -136,10 +136,10 @@ avg_q_c_int2 = sum(LOG1.q_c(ss_interval_2)) / length(LOG1.q_c(ss_interval_2));
 C_a1 = (1/avg_q_c_int1)*(unNaNed_p_c1_int1 - unNaNed_p_dh1_int1 + rho_a*g*h);
 C_a2 = (1/avg_q_c_int2)*(unNaNed_p_c1_int2 - unNaNed_p_dh1_int2 + rho_a*g*h);
 
-C_a1 = sum(C_a1)/length(C_a1)
-C_a2 = sum(C_a2)/length(C_a2)
+C_a1 = sum(C_a1)/length(C_a1);
+C_a2 = sum(C_a2)/length(C_a2);
 
-C_a = (C_a1 + C_a2) / 2
+C_a = (C_a1 + C_a2) / 2;
 
 %% Steady state curve fitting
 % For finding C_a, D_d and rho_d
@@ -202,27 +202,37 @@ plot(avg_q_measurments, poly(1)*avg_q_measurments.^2 + poly(2)*avg_q_measurments
 hold off;
 
 rho_d = poly(3)/(g*h)
-C_a_fit = poly(2)
-D_d_fit = poly(1)
+C_a = poly(2)
+D_d = poly(1)
 
 %% Phi_c(u) and theta_c as a part of q_c(p_c,u_c) and g_c(u)
 % making p_c our y, and u_c our u.....
 
 % dp_c/dt euler
-for i = 1:(length(LOG1.p_c)-1)
-    p_c_dot = (LOG2.p_c(i+1)-LOG3.p_c) ./ (LOG3.t(i+1) -LOG3.t(i));
+for i = 1:(length(LOG3.p_c)-1)
+    p_c_dot = (LOG3.p_c(i+1)-LOG3.p_c) ./ (LOG3.t(i+1) -LOG3.t(i));
 end
-Va_over_Beta_a = (LOG3.q_bpp - LOG3.q_c)./p_c_dot;
+V_a_over_Beta_a = (LOG3.q_bpp - LOG3.q_c)./p_c_dot;
+
+% Moving average
+a = 200;
+B = 1/a*ones(a,1);
+smoothed_q_bqq = filter(B,1,LOG3.q_bpp);
+smoothed_q_c = filter(B,1, LOG3.q_c);
+
+figure(1); clf(1)
+plot(LOG3.t, LOG3.q_c); hold on;
+plot(LOG3.t, smoothed_q_c)
+
+V_a_over_Beta_a_smoothed = (smoothed_q_bqq - smoothed_q_c) ./ p_c_dot;
+
+figure(2); clf(2)
+plot(LOG3.t, V_a_over_Beta_a_smoothed); hold on;
+plot(LOG3.t, V_a_over_Beta_a)
 
 
-%filtering
-N = 500;
-F = 1:N;
-Q_bpp = fft(LOG3.q_bpp, N);
-Q_c = fft(LOG3.q_c, N);
 
-%plot(LOG3.t, Va_over_Beta_a)
-%plot(LOG3.t, p_c_dot);
-%plot(LOG3.t, LOG3.q_bpp - LOG3.q_c)
+
+
 
 
