@@ -91,25 +91,6 @@ title('LOG3 nominal values of flows and valve opening')
 legend('z_c','q_c','q_p','q_{bpp}','p_p','p_c')
 
 
-%% chekcing z and u correlation
-
-% The actuator position zc is controlled by a low-level
-% control loop which attempts to track the command input u. In most cases, this actuator
-% dynamics is negligible fast, so that we can take zc = u . However, in the data set provided,
-% you may notice that this is not always the case.
-
-figure(3); clf(3);
-subplot(3,1,1)
-plot(LOG1.t, LOG1.z_c); hold on;
-plot(LOG1.t, LOG1.u_c)
-subplot(3,1,2)
-plot(LOG2.t, LOG2.z_c); hold on;
-plot(LOG2.t, LOG2.u_c)
-subplot(3,1,3)
-plot(LOG3.t, LOG3.z_c); hold on;
-plot(LOG3.t, LOG3.u_c)
-
-% conclusion LOG3 z_c =~ u_c
 
 %% Attempt at finding C_a, D_d and rho_d :: q_p = q_c = q
 
@@ -205,33 +186,68 @@ rho_d = poly(3)/(g*h)
 C_a = poly(2)
 D_d = poly(1)
 
-%% Phi_c(u) and theta_c as a part of q_c(p_c,u_c) and g_c(u)
-% making p_c our y, and u_c our u.....
 
-% dp_c/dt euler
-for i = 1:(length(LOG3.p_c)-1)
-    p_c_dot = (LOG3.p_c(i+1)-LOG3.p_c) ./ (LOG3.t(i+1) -LOG3.t(i));
-end
-V_a_over_Beta_a = (LOG3.q_bpp - LOG3.q_c)./p_c_dot;
+%%
+LOG = LOG3;
+figure(11); clf(11)
+plot(LOG.t, LOG.p_c- LOG.p_c_ds)
 
-% Moving average
-a = 200;
-B = 1/a*ones(a,1);
-smoothed_q_bqq = filter(B,1,LOG3.q_bpp);
-smoothed_q_c = filter(B,1, LOG3.q_c);
+g_c = LOG.q_c ./ sqrt(LOG.p_c -LOG.p_c_ds);
 
-figure(1); clf(1)
-plot(LOG3.t, LOG3.q_c); hold on;
-plot(LOG3.t, smoothed_q_c)
-
-V_a_over_Beta_a_smoothed = (smoothed_q_bqq - smoothed_q_c) ./ p_c_dot;
-
-figure(2); clf(2)
-plot(LOG3.t, V_a_over_Beta_a_smoothed); hold on;
-plot(LOG3.t, V_a_over_Beta_a)
+figure(12);clf(12)
+plot(LOG.t, g_c)
 
 
 
+
+%%
+
+% %% Phi_c(u) and theta_c as a part of q_c(p_c,u_c) and g_c(u)
+% % making p_c our y, and u_c our u.....
+% 
+% % dp_c/dt euler
+% for i = 1:(length(LOG3.p_c)-1)
+%     p_c_dot = (LOG3.p_c(i+1)-LOG3.p_c) ./ (LOG3.t(i+1) -LOG3.t(i));
+% end
+% V_a_over_Beta_a = (LOG3.q_bpp - LOG3.q_c)./p_c_dot;
+% 
+% % Moving average
+% a = 200;
+% B = 1/a*ones(a,1);
+% smoothed_q_bqq = filter(B,1,LOG3.q_bpp);
+% smoothed_q_c = filter(B,1, LOG3.q_c);
+% 
+% figure(1); clf(1)
+% plot(LOG3.t, LOG3.q_c); hold on;
+% plot(LOG3.t, smoothed_q_c)
+% 
+% V_a_over_Beta_a_smoothed = (smoothed_q_bqq - smoothed_q_c) ./ p_c_dot;
+% 
+% figure(2); clf(2)
+% plot(LOG3.t, V_a_over_Beta_a_smoothed); hold on;
+% plot(LOG3.t, V_a_over_Beta_a)
+
+%%
+
+% %% chekcing z and u correlation
+% 
+% % The actuator position zc is controlled by a low-level
+% % control loop which attempts to track the command input u. In most cases, this actuator
+% % dynamics is negligible fast, so that we can take zc = u . However, in the data set provided,
+% % you may notice that this is not always the case.
+% 
+% figure(3); clf(3);
+% subplot(3,1,1)
+% plot(LOG1.t, LOG1.z_c); hold on;
+% plot(LOG1.t, LOG1.u_c)
+% subplot(3,1,2)
+% plot(LOG2.t, LOG2.z_c); hold on;
+% plot(LOG2.t, LOG2.u_c)
+% subplot(3,1,3)
+% plot(LOG3.t, LOG3.z_c); hold on;
+% plot(LOG3.t, LOG3.u_c)
+% 
+% % conclusion LOG3 z_c =~ u_c
 
 
 
